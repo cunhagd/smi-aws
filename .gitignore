@@ -1,0 +1,19 @@
+# Ignorar diretórios __pycache__
+__pycache__
+
+# Ignorar arquivos compilados do Python
+*.pyc
+*.pyo
+*.pyd
+
+# Ambientes virtuais
+.venv
+.env
+
+# Logs
+*.log
+
+# Ignorar indicações da IDE
+.idea
+.tmp.driveupload
+logs/

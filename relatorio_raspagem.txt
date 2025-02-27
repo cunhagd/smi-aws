@@ -1,0 +1,10 @@
+
+        Relatório de Execução:
+        -----------------------
+        Total de módulos analisados: 0
+        Módulos com erro: Nenhum
+        Total de notícias salvas: 0
+        Total de notícias mapeadas: 0
+        Duração total da raspagem: 0.00 segundos
+        ETBILU
+        
