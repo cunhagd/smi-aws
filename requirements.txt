@@ -25,7 +25,6 @@ typing_extensions
 tzdata
 uritemplate
 urllib3
-selenium
 psycopg2
 lxml
 pandas
