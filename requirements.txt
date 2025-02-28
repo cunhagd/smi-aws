@@ -28,3 +28,6 @@ urllib3
 psycopg2
 lxml
 pandas
+gspread
+oauth2client
+psycopg2-binary
