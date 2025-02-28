@@ -99,7 +99,7 @@ class GerenciadorNoticias:
             cursor.close()
 
     def salvar_noticias(self, noticias):
-        """Salva as notícias no banco de dados, evitando links duplicados."""
+        """Salva as notícias no banco de dados, evitando links duplicados e adicionando o nome do portal."""
         connection = self.db_connection.get_connection()
         cursor = connection.cursor()
         try:
@@ -114,16 +114,17 @@ class GerenciadorNoticias:
                 palavras_chave_obrigatorias = ', '.join(palavras_obrigatorias_encontradas)
                 palavras_chave_adicionais = ', '.join(palavras_adicionais_encontradas)
 
-                # Insere a notícia na tabela
+                # Insere a notícia na tabela, pulando a coluna created_at (gerada pelo banco)
                 cursor.execute("""
-                    INSERT INTO noticias (data, titulo, corpo, link, autor, abrangencia, pontos, obrigatorias, adicionais)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO noticias (data, titulo, corpo, link, autor, abrangencia, pontos, obrigatorias, adicionais, portal)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     data, titulo, corpo, link_canonical, autor, self.abrangencia,
-                    self.pontuacao, palavras_chave_obrigatorias, palavras_chave_adicionais
+                    self.pontuacao, palavras_chave_obrigatorias, palavras_chave_adicionais,
+                    self.nome_portal  # Adicionado como último valor para a coluna 'portal'
                 ))
 
-                logging.info(f"Notícia adicionada: {titulo}")
+                logging.info(f"Notícia adicionada: {titulo} (Portal: {self.nome_portal})")
 
             # Commit das alterações
             connection.commit()
