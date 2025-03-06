@@ -1,8 +1,9 @@
+import os
+import json
 import psycopg2
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
-import os
 import logging
 
 # Configuração de logs
@@ -27,7 +28,17 @@ DB_CONFIG = {
 # Configurações do Google Sheets
 SHEET_ID = '19bUSdcegG6rE4Yml_diHb7tG80KmCfr7cNkyiesd_nU'
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-CREDS_FILE = 'credentials.json'  # Caminho para o arquivo de credenciais
+
+# Determina o caminho do credentials.json dinamicamente
+if os.getenv('GITHUB_ACTIONS'):
+    # No GitHub Actions, carrega o secret e cria o arquivo temporariamente
+    creds_data = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
+    with open('credentials.json', 'w') as f:
+        json.dump(creds_data, f)
+    CREDS_FILE = 'credentials.json'
+else:
+    # Localmente, usa o arquivo na raiz do projeto
+    CREDS_FILE = os.path.join(os.path.dirname(__file__), 'credentials.json')
 
 # Função para conectar ao Google Sheets
 def connect_to_sheets():
@@ -93,11 +104,13 @@ def mirror_data():
         headers = get_table_headers(cursor)
         logging.debug(f"Cabeçalhos da tabela: {headers}")
 
-        # Buscar todos os dados da tabela noticias
-        logging.debug("Executando consulta SQL para buscar dados da tabela 'noticias'...")
-        cursor.execute("SELECT * FROM noticias")
+        # Buscar apenas as notícias do dia atual
+        current_date = datetime.now().date()  # Obtém a data atual (ex.: 2025-03-06)
+        logging.debug(f"Filtrando notícias para a data atual: {current_date}")
+        # Converter a coluna 'data' (text no formato DD/MM/YYYY) para date e comparar com current_date
+        cursor.execute("SELECT * FROM noticias WHERE TO_DATE(data, 'DD/MM/YYYY') = %s", (current_date,))
         rows = cursor.fetchall()
-        logging.debug(f"Consulta retornou {len(rows)} linhas da tabela 'noticias'")
+        logging.debug(f"Consulta retornou {len(rows)} linhas da tabela 'noticias' para a data {current_date}")
 
         # Conectar ao Google Sheets
         sheet = connect_to_sheets()
@@ -137,7 +150,7 @@ def mirror_data():
             worksheet.append_rows(new_data)
             logging.info(f"{len(new_data)} novas notícias espelhadas na aba {month_sheet_name}.")
         else:
-            logging.info("Nenhum novo dados para espelhar.")
+            logging.info("Nenhum novo dado para espelhar para a data atual.")
 
     except Exception as e:
         logging.error(f"Erro ao espelhar dados: {e}")
